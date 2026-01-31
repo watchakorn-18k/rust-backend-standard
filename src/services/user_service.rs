@@ -6,7 +6,8 @@ use crate::{
     utils::pagination::PaginationResult,
 };
 use chrono::Utc;
-use mongodb::bson::{doc, oid::ObjectId};
+use mongodb::bson::doc;
+use bcrypt::{hash, DEFAULT_COST};
 
 #[derive(Clone)]
 pub struct UserService {
@@ -23,10 +24,13 @@ impl UserService {
             return Err(AppError::ValidationError("Email already exists".into()));
         }
 
-        let password_hash = format!("hashed_{}", input.password);
+        let password_hash = hash(input.password, DEFAULT_COST)
+            .map_err(|_| AppError::AuthError)?;
+
+        let user_id = uuid::Uuid::new_v4().to_string();
 
         let user = User {
-            id: None,
+            id: Some(user_id.clone()),
             username: input.username,
             email: input.email,
             password_hash,
@@ -35,17 +39,12 @@ impl UserService {
             updated_at: Utc::now(),
         };
 
-        let user_id = self.repo.create(&user).await?;
-        let created_user = self
-            .repo
-            .find_by_id(user_id)
-            .await?
-            .ok_or(AppError::InternalServerError)?;
-
-        Ok(created_user.into())
+        self.repo.create(&user).await?;
+        
+        Ok(user.into())
     }
 
-    pub async fn get_user(&self, id: ObjectId) -> Result<UserResponse, AppError> {
+    pub async fn get_user(&self, id: &str) -> Result<UserResponse, AppError> {
         let user = self.repo.find_by_id(id).await?.ok_or(AppError::NotFound)?;
         Ok(user.into())
     }
@@ -67,7 +66,7 @@ impl UserService {
         Ok(PaginationResult::new(user_responses, page, limit, total))
     }
     
-    pub async fn update_user(&self, id: ObjectId, input: UpdateUser) -> Result<(), AppError> {
+    pub async fn update_user(&self, id: &str, input: UpdateUser) -> Result<(), AppError> {
         let mut update_doc = doc! { "updated_at": Utc::now() };
         
         if let Some(username) = input.username {

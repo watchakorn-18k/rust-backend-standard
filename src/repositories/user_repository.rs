@@ -1,6 +1,6 @@
 use crate::models::user::User;
 use mongodb::{
-    bson::{doc, oid::ObjectId},
+    bson::doc,
     Collection, Database,
 };
 use futures::stream::TryStreamExt;
@@ -17,12 +17,12 @@ impl UserRepository {
         }
     }
 
-    pub async fn create(&self, user: &User) -> Result<ObjectId, mongodb::error::Error> {
+    pub async fn create(&self, user: &User) -> Result<String, mongodb::error::Error> {
         let result = self.collection.insert_one(user, None).await?;
-        Ok(result.inserted_id.as_object_id().unwrap())
+        Ok(result.inserted_id.as_str().unwrap().to_string())
     }
 
-    pub async fn find_by_id(&self, id: ObjectId) -> Result<Option<User>, mongodb::error::Error> {
+    pub async fn find_by_id(&self, id: &str) -> Result<Option<User>, mongodb::error::Error> {
         self.collection.find_one(doc! { "_id": id }, None).await
     }
 
@@ -32,7 +32,7 @@ impl UserRepository {
             .await
     }
 
-    pub async fn update(&self, id: ObjectId, update_doc: mongodb::bson::Document) -> Result<(), mongodb::error::Error> {
+    pub async fn update(&self, id: &str, update_doc: mongodb::bson::Document) -> Result<(), mongodb::error::Error> {
          self.collection.update_one(doc! { "_id": id }, doc! { "$set": update_doc }, None).await?;
          Ok(())
     }
