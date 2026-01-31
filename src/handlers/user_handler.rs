@@ -12,7 +12,6 @@ use axum::{
     response::IntoResponse,
     Json,
 };
-use mongodb::bson::oid::ObjectId;
 use validator::Validate;
 
 fn get_service(state: &AppState) -> UserService {
@@ -35,10 +34,8 @@ pub async fn get_user(
     State(state): State<AppState>,
     Path(id): Path<String>,
 ) -> Result<impl IntoResponse, AppError> {
-    let oid = ObjectId::parse_str(&id).map_err(|_| AppError::ValidationError("Invalid ID format".into()))?;
-    
     let service = get_service(&state);
-    let user = service.get_user(oid).await?;
+    let user = service.get_user(&id).await?;
     
     Ok(json_ok(user))
 }
@@ -58,11 +55,10 @@ pub async fn update_user(
     Path(id): Path<String>,
     Json(payload): Json<UpdateUser>,
 ) -> Result<impl IntoResponse, AppError> {
-    let oid = ObjectId::parse_str(&id).map_err(|_| AppError::ValidationError("Invalid ID format".into()))?;
     payload.validate().map_err(|e| AppError::ValidationError(e.to_string()))?;
 
     let service = get_service(&state);
-    service.update_user(oid, payload).await?;
+    service.update_user(&id, payload).await?;
     
     Ok(json_ok("User updated successfully"))
 }

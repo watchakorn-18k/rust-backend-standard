@@ -23,6 +23,10 @@ pub enum AppError {
     InternalServerError,
     #[error("Any Error: {0}")]
     AnyError(#[from] anyhow::Error),
+    #[error("User already exists")]
+    UserAlreadyExists,
+    #[error("Invalid email or password")]
+    InvalidCredentials,
 }
 
 impl IntoResponse for AppError {
@@ -49,6 +53,8 @@ impl IntoResponse for AppError {
                 tracing::error!("Unexpected Error: {:?}", e);
                 (StatusCode::INTERNAL_SERVER_ERROR, "Internal server error")
             }
+            AppError::UserAlreadyExists => (StatusCode::CONFLICT, "User already exists"),
+            AppError::InvalidCredentials => (StatusCode::UNAUTHORIZED, "Invalid email or password"),
         };
 
         let body = Json(json!({

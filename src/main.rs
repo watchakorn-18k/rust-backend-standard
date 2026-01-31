@@ -63,9 +63,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // 5. Build Router
     let app = Router::new()
         .route("/", get(|| async { axum::Json(serde_json::json!({ "message": "Welcome to fdlp Rust Backend Standard API", "version": "0.1.0", "docs": "/docs" })) }))
+        .nest("/api/v1/auth", routes::auth_routes::auth_routes(state.clone()))
         .nest("/api/v1/users", user_routes(state.clone()))
         .route("/health", get(handlers::health::health_check))
         .route("/ws", get(handlers::ws::ws_handler))
+        .route("/docs", get(handlers::docs::scalar_ui))
+        .route("/swagger.yaml", get(handlers::docs::swagger_yaml))
         .layer(TraceLayer::new_for_http())
         .with_state(state);
 

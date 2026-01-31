@@ -1,4 +1,3 @@
-use mongodb::bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
 use chrono::{DateTime, Utc};
 
@@ -6,7 +5,7 @@ use chrono::{DateTime, Utc};
 #[serde(rename_all = "camelCase")]
 pub struct User {
     #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
-    pub id: Option<ObjectId>,
+    pub id: Option<String>,
     pub username: String,
     pub email: String,
     pub password_hash: String,

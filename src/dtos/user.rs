@@ -36,7 +36,7 @@ pub struct UserResponse {
 impl From<crate::models::user::User> for UserResponse {
     fn from(user: crate::models::user::User) -> Self {
         Self {
-            id: user.id.map(|oid| oid.to_hex()).unwrap_or_default(),
+            id: user.id.unwrap_or_default(),
             username: user.username,
             email: user.email,
             role: user.role,
