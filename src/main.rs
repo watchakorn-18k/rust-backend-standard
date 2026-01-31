@@ -32,17 +32,23 @@ use crate::{
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // 1. Load environment variables
+    // Load environment variables
     dotenv().ok();
 
-    // 2. Set Timezone
+    // Set Timezone
     utils::time::set_global_timezone();
 
-    // 3. Initialize tracing
+    // Initialize tracing
     tracing_subscriber::fmt()
         .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
         .with_timer(utils::time::BangkokTimer)
         .init();
+
+    // Initialize CORS
+    let cors = CorsLayer::new()
+        .allow_origin("http://localhost:5173".parse::<HeaderValue>().unwrap())
+        .allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE])
+        .allow_headers([CONTENT_TYPE, AUTHORIZATION]);
 
     // Load configuration
     let config = AppConfig::new()?;
@@ -68,11 +74,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let state = Arc::new(InnerState::new(db, config.clone(), redis, user_service));
 
     // Build Router
-    let cors = CorsLayer::new()
-        .allow_origin("http://localhost:5173".parse::<HeaderValue>().unwrap())
-        .allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE])
-        .allow_headers([CONTENT_TYPE, AUTHORIZATION]);
-
     let mut app = routes::init_routes(state.clone())
         .route("/", get(|| async { 
             axum::Json(serde_json::json!({ 
