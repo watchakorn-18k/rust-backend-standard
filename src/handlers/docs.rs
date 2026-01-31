@@ -33,3 +33,11 @@ pub async fn schema_html() -> impl IntoResponse {
     let html = std::fs::read_to_string("docs/database-schema.html").unwrap_or_default();
     Html(html)
 }
+
+pub async fn database_schema_mermaid() -> impl IntoResponse {
+    let mermaid = std::fs::read_to_string("docs/database-schema.mermaid").unwrap_or_default();
+    (
+        [("content-type", "text/plain")],
+        mermaid,
+    )
+}

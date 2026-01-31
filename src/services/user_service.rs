@@ -2,24 +2,41 @@ use crate::{
     dtos::user::{CreateUser, UpdateUser, UserResponse},
     error::AppError,
     models::user::User,
-    repositories::user_repository::UserRepository,
+    repositories::user_repository::IUserRepository,
     utils::pagination::PaginationResult,
 };
+use std::sync::Arc;
 use chrono::Utc;
 use mongodb::bson::doc;
 use bcrypt::{hash, verify, DEFAULT_COST};
 
+use async_trait::async_trait;
+use mockall::automock;
+
+#[automock]
+#[async_trait]
+pub trait IUserService: Send + Sync {
+    async fn create_user(&self, input: CreateUser) -> Result<UserResponse, AppError>;
+    async fn get_user(&self, id: &str) -> Result<UserResponse, AppError>;
+    async fn list_users(&self, page: Option<u64>, limit: Option<u64>) -> Result<PaginationResult<UserResponse>, AppError>;
+    async fn update_user(&self, id: &str, input: UpdateUser) -> Result<(), AppError>;
+    async fn authenticate(&self, email: &str, password: &str) -> Result<User, AppError>;
+}
+
 #[derive(Clone)]
 pub struct UserService {
-    repo: UserRepository,
+    repo: Arc<dyn IUserRepository>,
 }
 
 impl UserService {
-    pub fn new(repo: UserRepository) -> Self {
+    pub fn new(repo: Arc<dyn IUserRepository>) -> Self {
         Self { repo }
     }
+}
 
-    pub async fn create_user(&self, input: CreateUser) -> Result<UserResponse, AppError> {
+#[async_trait]
+impl IUserService for UserService {
+    async fn create_user(&self, input: CreateUser) -> Result<UserResponse, AppError> {
         if self.repo.find_by_email(&input.email).await?.is_some() {
             return Err(AppError::ValidationError("Email already exists".into()));
         }
@@ -44,12 +61,12 @@ impl UserService {
         Ok(user.into())
     }
 
-    pub async fn get_user(&self, id: &str) -> Result<UserResponse, AppError> {
+    async fn get_user(&self, id: &str) -> Result<UserResponse, AppError> {
         let user = self.repo.find_by_id(id).await?.ok_or(AppError::NotFound)?;
         Ok(user.into())
     }
 
-    pub async fn list_users(
+    async fn list_users(
         &self,
         page: Option<u64>,
         limit: Option<u64>,
@@ -66,7 +83,7 @@ impl UserService {
         Ok(PaginationResult::new(user_responses, page, limit, total))
     }
     
-    pub async fn update_user(&self, id: &str, input: UpdateUser) -> Result<(), AppError> {
+    async fn update_user(&self, id: &str, input: UpdateUser) -> Result<(), AppError> {
         let mut update_doc = doc! { "updated_at": Utc::now() };
         
         if let Some(username) = input.username {
@@ -83,7 +100,7 @@ impl UserService {
         self.repo.update(id, update_doc).await.map_err(Into::into)
     }
 
-    pub async fn authenticate(&self, email: &str, password: &str) -> Result<User, AppError> {
+    async fn authenticate(&self, email: &str, password: &str) -> Result<User, AppError> {
         let user = self.repo.find_by_email(email).await?
             .ok_or(AppError::InvalidCredentials)?;
 

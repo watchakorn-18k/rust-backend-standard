@@ -1,9 +1,18 @@
 use mongodb::{Database, Client, options::ClientOptions};
-use std::ops::Deref;
+
+pub trait IMongoProvider: Send + Sync {
+    fn database(&self) -> Database;
+}
 
 #[derive(Clone)]
 pub struct MongoProvider {
     db: Database,
+}
+
+impl IMongoProvider for MongoProvider {
+    fn database(&self) -> Database {
+        self.db.clone()
+    }
 }
 
 impl MongoProvider {
@@ -15,10 +24,23 @@ impl MongoProvider {
     }
 }
 
-impl Deref for MongoProvider {
-    type Target = Database;
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    fn deref(&self) -> &Self::Target {
-        &self.db
+    #[tokio::test]
+    async fn test_mongo_provider_new() {
+        let uri = "mongodb://localhost:27017";
+        let db_name = "test";
+        let provider = MongoProvider::new(uri, db_name).await;
+        assert!(provider.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_mongo_provider_database() {
+        let uri = "mongodb://localhost:27017";
+        let db_name = "test";
+        let provider = MongoProvider::new(uri, db_name).await.unwrap();
+        let _db = provider.database();
     }
 }
