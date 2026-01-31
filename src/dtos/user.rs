@@ -22,7 +22,7 @@ pub struct UpdateUser {
     pub email: Option<String>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct UserResponse {
     pub id: String,
@@ -43,5 +43,30 @@ impl From<crate::models::user::User> for UserResponse {
             created_at: user.created_at,
             updated_at: user.updated_at,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::models::user::User;
+
+    #[test]
+    fn test_user_response_from_user() {
+        let now = Utc::now();
+        let user = User {
+            id: Some("id123".into()),
+            username: "test".into(),
+            email: "test@test.com".into(),
+            password_hash: "hash".into(),
+            role: "user".into(),
+            created_at: now,
+            updated_at: now,
+        };
+
+        let response: UserResponse = user.into();
+        assert_eq!(response.id, "id123");
+        assert_eq!(response.username, "test");
+        assert_eq!(response.email, "test@test.com");
     }
 }

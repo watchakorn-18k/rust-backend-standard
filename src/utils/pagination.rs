@@ -6,7 +6,7 @@ pub struct PaginationParams {
     pub limit: Option<u64>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 pub struct PaginationResult<T> {
     pub data: Vec<T>,
     pub page: u64,

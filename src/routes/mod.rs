@@ -10,8 +10,25 @@ pub fn init_routes(state: AppState) -> Router<AppState> {
         .merge(auth_routes::auth_routes(state.clone()))
         .merge(user_routes::user_routes(state.clone()));
 
-    Router::new()
+    let mut app = Router::new()
         .merge(ws_routes::ws_routes(state.clone()))
         .nest("/api/v1", v1_routes)
-        .with_state(state)
+        .route("/", axum::routing::get(|| async { 
+            axum::Json(serde_json::json!({ 
+                "message": "Welcome to fdlp Rust Backend Standard API", 
+                "version": "0.1.0", 
+                "docs": "/docs" 
+            })) 
+        }))
+        .route("/health", axum::routing::get(crate::handlers::health::health_check));
+
+    if state.config.app_mode == "development" {
+        app = app
+            .route("/docs", axum::routing::get(crate::handlers::docs::scalar_ui))
+            .route("/swagger.yaml", axum::routing::get(crate::handlers::docs::swagger_yaml))
+            .route("/schema", axum::routing::get(crate::handlers::docs::schema_html))
+            .route("/database-schema.mermaid", axum::routing::get(crate::handlers::docs::database_schema_mermaid));
+    }
+
+    app
 }

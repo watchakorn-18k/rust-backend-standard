@@ -14,3 +14,15 @@ impl EmailProvider {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn test_send_email() {
+        let provider = EmailProvider::new();
+        let result = provider.send_email("test@example.com", "Subject", "Body").await;
+        assert!(result.is_ok());
+    }
+}

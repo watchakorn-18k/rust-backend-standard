@@ -69,5 +69,55 @@ Rust ประหยัด RAM อยู่แล้ว แต่เราสา
 3. **Run**: `cargo run`
 4. **Documentation**: เข้าไปที่ `http://localhost:1432/docs` เพื่อดู API Spec (Scalar UI)
 
+## 🧪 Testing & Code Coverage (การทดสอบระบบ)
+
+โปรเจกต์นี้รองรับการทำ Unit Test, Integration Test และการวัด Code Coverage อย่างเต็มรูปแบบ โดยใช้โครงสร้างแบบ Mocking (Traits)
+
+### 1. การรัน Test (Standard)
+- **รันเทสทั้งหมด:**
+  ```bash
+  cargo test
+  ```
+- **รันเฉพาะไฟล์ที่ต้องการ (Integration Test):**
+  ```bash
+  cargo test --test service_tests
+  ```
+- **รันเฉพาะฟังก์ชันเดียว:**
+  ```bash
+  cargo test test_create_user_logic
+  ```
+- **ดู Log/Print ระหว่างเทส:**
+  ```bash
+  cargo test -- --nocapture
+  ```
+
+### 2. การวัด Code Coverage (LLVM-COV)
+เราใช้ `cargo-llvm-cov` สำหรับวัดความครอบคลุมของเทส
+
+**การติดตั้งเครื่องมือ (ทำครั้งเดียว):**
+```bash
+cargo install cargo-llvm-cov
+rustup component add llvm-tools-preview
+```
+
+**วิธีการรัน Coverage:**
+หากพบปัญหา `failed to find llvm-tools-preview` ให้ใช้คำสั่งที่ระบุ Path ผ่าน `rustup` ดังนี้:
+
+- **รันและดูสรุปใน Terminal:**
+  ```bash
+  LLVM_COV=$(rustup run stable rustc --print sysroot)/lib/rustlib/aarch64-apple-darwin/bin/llvm-cov \
+  LLVM_PROFDATA=$(rustup run stable rustc --print sysroot)/lib/rustlib/aarch64-apple-darwin/bin/llvm-profdata \
+  cargo llvm-cov --summary-only
+  ```
+
+- **สร้างรายงานเป็น HTML (แนะนำ):**
+  ```bash
+  LLVM_COV=$(rustup run stable rustc --print sysroot)/lib/rustlib/aarch64-apple-darwin/bin/llvm-cov \
+  LLVM_PROFDATA=$(rustup run stable rustc --print sysroot)/lib/rustlib/aarch64-apple-darwin/bin/llvm-profdata \
+  cargo llvm-cov --html
+  ```
+  *เปิดรายงานได้ที่: `target/llvm-cov/html/index.html`*
+
 ---
-*คำแนะนำ:  การศึกษาเรื่อง **Ownership** และ **Borrowing** ใน Rust คือกุญแจสำคัญที่จะทำให้คุณเขียนโค้ดที่ทั้งเร็วและไม่มี Memory Leak*
+
+*คำแนะนำ: การศึกษาเรื่อง **Ownership** และ **Borrowing** ใน Rust คือกุญแจสำคัญที่จะทำให้คุณเขียนโค้ดที่ทั้งเร็วและไม่มี Memory Leak*

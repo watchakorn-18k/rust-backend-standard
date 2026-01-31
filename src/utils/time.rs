@@ -21,3 +21,32 @@ impl tracing_subscriber::fmt::time::FormatTime for BangkokTimer {
         write!(w, "{}", now.format("%Y-%m-%dT%H:%M:%S%.3f+07:00"))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_now_bangkok() {
+        let time = now_bangkok();
+        // Check if the timezone is Asia/Bangkok (+07:00)
+        assert!(time.timezone().to_string().contains("Bangkok"));
+    }
+
+    #[test]
+    fn test_set_global_timezone() {
+        set_global_timezone();
+        assert_eq!(std::env::var("TZ").unwrap(), "Asia/Bangkok");
+    }
+
+    #[test]
+    fn test_bangkok_timer() {
+        use tracing_subscriber::fmt::time::FormatTime;
+        let timer = BangkokTimer;
+        let mut buf = String::new();
+        let mut writer = tracing_subscriber::fmt::format::Writer::new(&mut buf);
+        let res = timer.format_time(&mut writer);
+        assert!(res.is_ok());
+        assert!(buf.contains("+07:00"));
+    }
+}

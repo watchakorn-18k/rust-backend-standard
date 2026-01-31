@@ -14,3 +14,15 @@ impl S3Provider {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn test_upload() {
+        let provider = S3Provider::new();
+        let result = provider.upload("key", b"data").await;
+        assert!(result.is_ok());
+    }
+}

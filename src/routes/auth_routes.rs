@@ -4,11 +4,10 @@ use axum::{
     Router,
 };
 
-pub fn auth_routes(state: AppState) -> Router<AppState> {
+pub fn auth_routes(_state: AppState) -> Router<AppState> {
     Router::new()
         .nest("/auth", Router::new()
             .route("/register", post(AuthHandler::register))
             .route("/login", post(AuthHandler::login))
         )
-        .with_state(state)
 }

@@ -38,3 +38,25 @@ pub async fn logger_middleware(
 
     response
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use axum::{routing::get, Router};
+    use tower::ServiceExt;
+    use axum::http::Request;
+
+    #[tokio::test]
+    async fn test_logger_middleware() {
+        let app = Router::new()
+            .route("/", get(|| async { "ok" }))
+            .layer(axum::middleware::from_fn(logger_middleware));
+
+        let response = app
+            .oneshot(Request::builder().uri("/").body(axum::body::Body::empty()).unwrap())
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), axum::http::StatusCode::OK);
+    }
+}

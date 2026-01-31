@@ -1,0 +1,244 @@
+info: cargo-llvm-cov currently setting cfg(coverage); you can opt-out it by passing --no-cfg-coverage
+   Compiling fldp-rust-backend-template v0.1.0 (/Users/watchakorn.b/FILE_CODE/Templates/github_fakduai/rust-backend-standard)
+warning: unexpected `cfg` condition name: `coverage`
+  --> src/handlers/ws.rs:11:7
+   |
+11 | #[cfg(coverage)]
+   |       ^^^^^^^^
+   |
+   = help: expected names are: `docsrs`, `feature`, and `test` and 31 more
+   = help: consider using a Cargo feature instead
+   = help: or consider adding in `Cargo.toml` the `check-cfg` lint config for the lint:
+            [lints.rust]
+            unexpected_cfgs = { level = "warn", check-cfg = ['cfg(coverage)'] }
+   = help: or consider adding `println!("cargo::rustc-check-cfg=cfg(coverage)");` to the top of the `build.rs`
+   = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+   = note: `#[warn(unexpected_cfgs)]` on by default
+
+warning: unexpected `cfg` condition name: `coverage`
+  --> src/handlers/ws.rs:14:11
+   |
+14 | #[cfg(not(coverage))]
+   |           ^^^^^^^^
+   |
+   = help: consider using a Cargo feature instead
+   = help: or consider adding in `Cargo.toml` the `check-cfg` lint config for the lint:
+            [lints.rust]
+            unexpected_cfgs = { level = "warn", check-cfg = ['cfg(coverage)'] }
+   = help: or consider adding `println!("cargo::rustc-check-cfg=cfg(coverage)");` to the top of the `build.rs`
+   = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unused import: `Message`
+ --> src/handlers/ws.rs:2:19
+  |
+2 |     extract::ws::{Message, WebSocket, WebSocketUpgrade},
+  |                   ^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `handler::Handler`
+ --> src/routes/user_routes.rs:3:5
+  |
+3 |     handler::Handler,
+  |     ^^^^^^^^^^^^^^^^
+
+warning: unused import: `std::sync::Arc`
+  --> src/lib.rs:16:5
+   |
+16 | use std::sync::Arc;
+   |     ^^^^^^^^^^^^^^
+
+warning: `fldp-rust-backend-template` (lib) generated 5 warnings (run `cargo fix --lib -p fldp-rust-backend-template` to apply 3 suggestions)
+warning: unexpected `cfg` condition name: `coverage`
+  --> src/main.rs:15:11
+   |
+15 | #[cfg(not(coverage))]
+   |           ^^^^^^^^
+   |
+   = help: expected names are: `docsrs`, `feature`, and `test` and 31 more
+   = help: consider using a Cargo feature instead
+   = help: or consider adding in `Cargo.toml` the `check-cfg` lint config for the lint:
+            [lints.rust]
+            unexpected_cfgs = { level = "warn", check-cfg = ['cfg(coverage)'] }
+   = help: or consider adding `println!("cargo::rustc-check-cfg=cfg(coverage)");` to the top of the `build.rs`
+   = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+   = note: `#[warn(unexpected_cfgs)]` on by default
+
+warning: unexpected `cfg` condition name: `coverage`
+  --> src/main.rs:67:7
+   |
+67 | #[cfg(coverage)]
+   |       ^^^^^^^^
+   |
+   = help: consider using a Cargo feature instead
+   = help: or consider adding in `Cargo.toml` the `check-cfg` lint config for the lint:
+            [lints.rust]
+            unexpected_cfgs = { level = "warn", check-cfg = ['cfg(coverage)'] }
+   = help: or consider adding `println!("cargo::rustc-check-cfg=cfg(coverage)");` to the top of the `build.rs`
+   = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unused import: `dotenvy::dotenv`
+ --> src/main.rs:1:5
+  |
+1 | use dotenvy::dotenv;
+  |     ^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `std::net::SocketAddr`
+ --> src/main.rs:2:5
+  |
+2 | use std::net::SocketAddr;
+  |     ^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `std::sync::Arc`
+ --> src/main.rs:3:5
+  |
+3 | use std::sync::Arc;
+  |     ^^^^^^^^^^^^^^
+
+warning: unused import: `tokio::net::TcpListener`
+ --> src/main.rs:4:5
+  |
+4 | use tokio::net::TcpListener;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `config::AppConfig`, `create_app`, `db`, `repositories`, `services`, `state::InnerState`, and `utils`
+  --> src/main.rs:6:5
+   |
+ 6 |     config::AppConfig,
+   |     ^^^^^^^^^^^^^^^^^
+ 7 |     state::InnerState,
+   |     ^^^^^^^^^^^^^^^^^
+ 8 |     utils,
+   |     ^^^^^
+ 9 |     db,
+   |     ^^
+10 |     repositories,
+   |     ^^^^^^^^^^^^
+11 |     services,
+   |     ^^^^^^^^
+12 |     create_app,
+   |     ^^^^^^^^^^
+
+warning: `fldp-rust-backend-template` (bin "fldp-rust-backend-template" test) generated 7 warnings (run `cargo fix --bin "fldp-rust-backend-template" -p fldp-rust-backend-template --tests` to apply 5 suggestions)
+warning: `fldp-rust-backend-template` (bin "fldp-rust-backend-template") generated 7 warnings (7 duplicates)
+warning: `fldp-rust-backend-template` (lib test) generated 5 warnings (5 duplicates)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.74s
+warning: the following packages contain code that will be rejected by a future version of Rust: redis v0.24.0
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+     Running unittests src/lib.rs (target/llvm-cov-target/debug/deps/fldp_rust_backend_template-ef41b577b62becf7)
+
+running 26 tests
+test config::tests::test_defaults ... ok
+test dtos::user::tests::test_user_response_from_user ... ok
+test config::tests::test_config_extraction_fail ... ok
+test config::tests::test_config_extraction ... ok
+test error::tests::test_error_into_response ... ok
+test middlewares::auth::tests::test_auth_middleware_invalid_format ... ok
+test middlewares::auth::tests::test_auth_middleware_invalid_utf8 ... ok
+test middlewares::auth::tests::test_auth_middleware_missing_header ... ok
+test middlewares::auth::tests::test_auth_middleware_success ... ok
+test middlewares::role::tests::test_admin_guard_always_ok_for_now ... ok
+test middlewares::logger::tests::test_logger_middleware ... ok
+test providers::email::tests::test_send_email ... ok
+test providers::s3::tests::test_upload ... ok
+test db::redis::tests::test_redis_provider_new_fail ... ok
+test utils::response::tests::test_json_created ... ok
+test utils::response::tests::test_json_ok ... ok
+test utils::time::tests::test_bangkok_timer ... ok
+test utils::time::tests::test_now_bangkok ... ok
+test utils::time::tests::test_set_global_timezone ... ok
+test tests::test_create_app ... ok
+test db::mongo::tests::test_mongo_provider_database ... ok
+test db::mongo::tests::test_mongo_provider_new ... ok
+test db::redis::tests::test_redis_provider_new_with_password_fail ... ok
+test handlers::health::tests::test_health_check ... ok
+test handlers::health::tests::test_health_check_error ... ok
+test repositories::user_repository::tests::test_user_repository_methods_error ... ok
+
+test result: ok. 26 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running unittests src/main.rs (target/llvm-cov-target/debug/deps/fldp_rust_backend_template-9d4d97df9287e5fb)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/handler_tests.rs (target/llvm-cov-target/debug/deps/handler_tests-059ef00722691fba)
+
+running 10 tests
+test handlers::user_handler_test::test_update_user_handler ... ok
+test handlers::user_handler_test::test_get_user_not_found_handler ... ok
+test handlers::user_handler_test::test_get_user_handler ... ok
+test handlers::user_handler_test::test_list_users_handler ... ok
+test handlers::auth_handler_test::test_login_handler_validation_error ... ok
+test handlers::user_handler_test::test_create_user_validation_error ... ok
+test handlers::auth_handler_test::test_register_handler_validation_error ... ok
+test handlers::auth_handler_test::test_register_handler_success ... ok
+test handlers::user_handler_test::test_create_user_handler ... ok
+test handlers::auth_handler_test::test_login_handler_success ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/integration_tests.rs (target/llvm-cov-target/debug/deps/integration_tests-3d0749f70aae0686)
+
+running 6 tests
+test integration::route_test::test_ws_route ... ok
+test integration::route_test::test_api_v1_user_list_route_unauthorized ... ok
+test integration::route_test::test_root_route ... ok
+test integration::route_test::test_docs_routes ... ok
+test integration::route_test::test_api_v1_auth_register_route ... ok
+test integration::route_test::test_health_route ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/service_tests.rs (target/llvm-cov-target/debug/deps/service_tests-82a1ee5fbc5160f7)
+
+running 5 tests
+test services::user_service_test::tests::test_list_users ... ok
+test services::user_service_test::tests::test_get_user_success ... ok
+test services::user_service_test::tests::test_update_user_success ... ok
+test services::user_service_test::tests::test_create_user_logic ... ok
+test services::user_service_test::tests::test_authenticate_success ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.95s
+
+     Running tests/unit_tests.rs (target/llvm-cov-target/debug/deps/unit_tests-d17695e843d4b76d)
+
+running 1 test
+test unit::pagination_test::test_pagination_result_calculation ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+Filename                            Regions    Missed Regions     Cover   Functions  Missed Functions  Executed       Lines      Missed Lines     Cover    Branches   Missed Branches     Cover
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+config.rs                                72                 7    90.28%           6                 1    83.33%          40                 6    85.00%           0                 0         -
+db/mongo.rs                              51                 2    96.08%           7                 0   100.00%          26                 0   100.00%           0                 0         -
+db/redis.rs                              48                 7    85.42%           8                 2    75.00%          31                 5    83.87%           0                 0         -
+dtos/user.rs                             30                 0   100.00%           2                 0   100.00%          26                 0   100.00%           0                 0         -
+error.rs                                 78                 2    97.44%           3                 0   100.00%          45                 0   100.00%           0                 0         -
+handlers/auth_handler.rs                 49                 3    93.88%           6                 0   100.00%          37                 0   100.00%           0                 0         -
+handlers/docs.rs                         18                 0   100.00%           6                 0   100.00%          34                 0   100.00%           0                 0         -
+handlers/health.rs                      141                 2    98.58%           8                 0   100.00%          73                 1    98.63%           0                 0         -
+handlers/user_handler.rs                 45                 6    86.67%          10                 1    90.00%          37                 1    97.30%           0                 0         -
+handlers/ws.rs                            7                 7     0.00%           4                 4     0.00%           6                 6     0.00%           0                 0         -
+lib.rs                                   36                 0   100.00%           3                 0   100.00%          18                 0   100.00%           0                 0         -
+main.rs                                   2                 2     0.00%           1                 1     0.00%           1                 1     0.00%           0                 0         -
+middlewares/auth.rs                     147                12    91.84%          19                 6    68.42%          96                 6    93.75%           0                 0         -
+middlewares/logger.rs                    68                 1    98.53%           7                 0   100.00%          43                 0   100.00%           0                 0         -
+middlewares/role.rs                      33                 0   100.00%           6                 0   100.00%          21                 0   100.00%           0                 0         -
+providers/email.rs                       24                 0   100.00%           5                 0   100.00%          15                 0   100.00%           0                 0         -
+providers/s3.rs                          25                 0   100.00%           5                 0   100.00%          15                 0   100.00%           0                 0         -
+repositories/user_repository.rs          71                 0   100.00%           9                 0   100.00%          49                 0   100.00%           0                 0         -
+routes/auth_routes.rs                    12                 0   100.00%           1                 0   100.00%           6                 0   100.00%           0                 0         -
+routes/mod.rs                            46                 1    97.83%           3                 0   100.00%          25                 0   100.00%           0                 0         -
+routes/user_routes.rs                    23                 0   100.00%           1                 0   100.00%           7                 0   100.00%           0                 0         -
+routes/ws_routes.rs                       6                 0   100.00%           1                 0   100.00%           4                 0   100.00%           0                 0         -
+services/user_service.rs                 13                 0   100.00%           6                 0   100.00%          13                 0   100.00%           0                 0         -
+state.rs                                  5                 0   100.00%           1                 0   100.00%           8                 0   100.00%           0                 0         -
+utils/pagination.rs                       8                 0   100.00%           1                 0   100.00%          10                 0   100.00%           0                 0         -
+utils/response.rs                        28                 0   100.00%           6                 0   100.00%          18                 0   100.00%           0                 0         -
+utils/time.rs                            50                 0   100.00%           6                 0   100.00%          27                 0   100.00%           0                 0         -
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+TOTAL                                  1136                52    95.42%         141                15    89.36%         731                26    96.44%           0                 0         -

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
@@ -342,7 +342,7 @@
 
       async function loadMermaidData() {
         try {
-          const response = await fetch("/docs/database-schema.mermaid");
+          const response = await fetch("/database-schema.mermaid");
           if (response.ok) {
             mermaidData = await response.text();
           } else {
@@ -369,7 +369,7 @@
             line.includes("--o{")
           ) {
             const match = line.match(
-              /(\w+)\s*[\|\}][\|o]-*o?[\{\|]\s*(\w+)\s*:\s*(.+)/
+              /(\w+)\s*[\|\}][\|o]-*o?[\{\|]\s*(\w+)\s*:\s*(.+)/,
             );
             if (match) {
               relationships.push({
@@ -700,8 +700,8 @@
         ctx.strokeStyle = isSelected
           ? "#3b82f6"
           : isHovered
-          ? "#6b7280"
-          : "#4b5563";
+            ? "#6b7280"
+            : "#4b5563";
         ctx.lineWidth = isSelected ? 3 : 2;
         ctx.beginPath();
         ctx.roundRect(entity.x, entity.y, entity.width, entity.height, 8);
@@ -739,8 +739,8 @@
               field.constraint === "PK"
                 ? "#fbbf24"
                 : field.constraint === "FK"
-                ? "#60a5fa"
-                : "#a78bfa";
+                  ? "#60a5fa"
+                  : "#a78bfa";
             ctx.font = "bold 10px sans-serif";
             ctx.fillText(field.constraint, entity.x + entity.width - 30, y);
             ctx.fillStyle = document.documentElement.classList.contains("dark")
@@ -836,7 +836,7 @@
 
         const angle = Math.atan2(
           toCenter.y - fromCenter.y,
-          toCenter.x - fromCenter.x
+          toCenter.x - fromCenter.x,
         );
 
         if (Math.abs(angle) < Math.PI / 4) {
@@ -928,7 +928,7 @@
         if (selectedEntities.size < 2) return;
 
         const selectedEntitiesList = Array.from(selectedEntities).map((name) =>
-          entities.get(name)
+          entities.get(name),
         );
 
         if (direction === "horizontal") {
@@ -999,7 +999,7 @@
         const jitterPower = 120;
 
         connected.sort(
-          (a, b) => (degree.get(b.name) || 0) - (degree.get(a.name) || 0)
+          (a, b) => (degree.get(b.name) || 0) - (degree.get(a.name) || 0),
         );
 
         connected.forEach((entity, index) => {
@@ -1217,7 +1217,7 @@
           y,
           width,
           height,
-          radii
+          radii,
         ) {
           if (typeof radii === "number") {
             radii = [radii, radii, radii, radii];
@@ -1234,7 +1234,7 @@
             x + width,
             y + height,
             x + width - radii[2],
-            y + height
+            y + height,
           );
           this.lineTo(x + radii[3], y + height);
           this.quadraticCurveTo(x, y + height, x, y + height - radii[3]);
@@ -1253,7 +1253,9 @@
           transparent 1px
         );
         background-size: 20px 20px;
-        background-position: 0 0, 10px 10px;
+        background-position:
+          0 0,
+          10px 10px;
       }
 
       .dark .dot-grid {

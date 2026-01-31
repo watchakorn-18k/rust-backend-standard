@@ -41,3 +41,74 @@ impl AppConfig {
             .extract()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_defaults() {
+        assert_eq!(default_port(), 3000);
+        assert_eq!(default_mode(), "production");
+    }
+
+    #[test]
+    fn test_config_extraction() {
+        use figment::providers::Serialized;
+        let config: AppConfig = Figment::new()
+            .merge(Serialized::default("mongodb_uri", "uri"))
+            .merge(Serialized::default("mongodb_name", "db"))
+            .merge(Serialized::default("redis_host", "localhost"))
+            .merge(Serialized::default("redis_port", 6379))
+            .merge(Serialized::default("redis_db", 0))
+            .merge(Serialized::default("jwt_secret", "secret"))
+            .merge(Serialized::default("aws_region", "us-east-1"))
+            .merge(Serialized::default("aws_access_key_id", "id"))
+            .merge(Serialized::default("aws_secret_access_key", "key"))
+            .merge(Serialized::default("aws_bucket_name", "bucket"))
+            .merge(Serialized::default("firebase_credentials_file", "file"))
+            .extract()
+            .unwrap();
+
+        assert_eq!(config.mongodb_uri, "uri");
+        assert_eq!(config.port, 3000); // default
+    }
+
+    #[test]
+    fn test_config_extraction_fail() {
+        use figment::providers::Serialized;
+        let res: Result<AppConfig, _> = Figment::new()
+            .merge(Serialized::default("mongodb_uri", "uri"))
+            .extract();
+        assert!(res.is_err());
+    }
+
+    #[test]
+    fn test_config_extraction_full() {
+        use figment::providers::Serialized;
+        let config: AppConfig = Figment::new()
+            .merge(Serialized::default("mongodb_uri", "uri"))
+            .merge(Serialized::default("mongodb_name", "db"))
+            .merge(Serialized::default("redis_host", "localhost"))
+            .merge(Serialized::default("redis_port", 6379))
+            .merge(Serialized::default("redis_db", 0))
+            .merge(Serialized::default("redis_password", "pass"))
+            .merge(Serialized::default("jwt_secret", "secret"))
+            .merge(Serialized::default("aws_region", "us-east-1"))
+            .merge(Serialized::default("aws_access_key_id", "id"))
+            .merge(Serialized::default("aws_secret_access_key", "key"))
+            .merge(Serialized::default("aws_bucket_name", "bucket"))
+            .merge(Serialized::default("firebase_credentials_file", "file"))
+            .merge(Serialized::default("port", 8080))
+            .extract()
+            .unwrap();
+
+        assert_eq!(config.port, 8080);
+        assert_eq!(config.redis_password, Some("pass".to_string()));
+    }
+
+    #[test]
+    fn test_app_config_new() {
+        let _ = AppConfig::new();
+    }
+}

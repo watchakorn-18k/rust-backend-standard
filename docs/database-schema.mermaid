@@ -17,24 +17,13 @@ config:
 ---
 
 erDiagram
-    %% User Management Relationships
-    Users }|--|| Role : has_role
-
-    Users {
-        UUID ID PK "Primary Key"
-        string Username UK "Unique, Not Null"
-        string Email UK "Unique, Not Null"
-        string Fisrtname "First Name"
-        string Password "Not Null"
-        UUID RoleID FK "Foreign Key -> Role.ID"
-        timestamp CreatedAt
-        timestamp UpdatedAt
+    User {
+        string id PK "_id"
+        string username "Unique"
+        string email "Unique"
+        string password_hash
+        string role "admin | user"
+        timestamp created_at
+        timestamp updated_at
     }
 
-    Role {
-        UUID ID PK "Primary Key"
-        string Name UK "Unique, Not Null"
-        string Description
-        timestamp CreatedAt
-        timestamp UpdatedAt
-    }

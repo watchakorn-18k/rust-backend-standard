@@ -65,3 +65,35 @@ impl IntoResponse for AppError {
         (status, body).into_response()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use axum::response::IntoResponse;
+
+    #[tokio::test]
+    async fn test_error_into_response() {
+        assert_eq!(AppError::NotFound.into_response().status(), StatusCode::NOT_FOUND);
+        assert_eq!(AppError::AuthError.into_response().status(), StatusCode::UNAUTHORIZED);
+        
+        let res = AppError::ValidationError("test".into()).into_response();
+        assert_eq!(res.status(), StatusCode::BAD_REQUEST);
+
+        let res = AppError::DatabaseError(mongodb::error::Error::custom("db error")).into_response();
+        assert_eq!(res.status(), StatusCode::INTERNAL_SERVER_ERROR);
+
+        let res = AppError::InternalServerError.into_response();
+        assert_eq!(res.status(), StatusCode::INTERNAL_SERVER_ERROR);
+
+        let res = AppError::PermissionDenied.into_response();
+        assert_eq!(res.status(), StatusCode::FORBIDDEN);
+
+        let res = AppError::InvalidCredentials.into_response();
+        assert_eq!(res.status(), StatusCode::UNAUTHORIZED);
+
+        assert_eq!(AppError::UserAlreadyExists.into_response().status(), StatusCode::CONFLICT);
+        
+        let res = AppError::AnyError(anyhow::anyhow!("error")).into_response();
+        assert_eq!(res.status(), StatusCode::INTERNAL_SERVER_ERROR);
+    }
+}
