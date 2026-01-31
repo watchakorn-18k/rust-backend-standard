@@ -62,6 +62,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // 5. Build Router
     let app = Router::new()
+        .route("/", get(|| async { axum::Json(serde_json::json!({ "message": "Welcome to fdlp Rust Backend Standard API", "version": "0.1.0", "docs": "/docs" })) }))
         .nest("/api/v1/users", user_routes(state.clone()))
         .route("/health", get(handlers::health::health_check))
         .route("/ws", get(handlers::ws::ws_handler))
@@ -70,7 +71,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // 6. Serve
     let addr = SocketAddr::from(([0, 0, 0, 0], config.port));
-    println!("\x1b[1;32m🚀 Server is running on http://{}\x1b[0m", addr);
+    println!("\x1b[1;32m🚀 Server is running on http://localhost:{}\x1b[0m", config.port);
     tracing::info!("Listening on {}", addr);
     
     let listener = TcpListener::bind(addr).await?;
