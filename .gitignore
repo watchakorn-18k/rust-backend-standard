@@ -1,1 +1,42 @@
+# Rust
 /target
+# Cargo.lock - Comment this out if you want to commit dependencies versions for consistency
+Cargo.lock
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# OS generated files
+.DS_Store
+Thumbs.db
+*.icloud
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+.history/
+
+# Docker
+.docker/
+
+# Testing & Scratchpad
+tests/tmp/
+ws_test.html
+
+# Credentials & Private data
+credentials/
+*.pem
+*.key
+
+# Logs
+*.log
+
+# Sub-projects
+fldp-rust-backend-template/target/
+fldp-rust-backend-template/Cargo.lock
+fldp-rust-backend-template/credentials/
+

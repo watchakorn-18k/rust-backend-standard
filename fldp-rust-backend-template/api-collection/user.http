@@ -1,0 +1,17 @@
+@baseUrl = http://localhost:3000/api/v1
+
+### Create User
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+    "username": "testuser",
+    "email": "test@example.com",
+    "password": "password123"
+}
+
+### List Users
+GET {{baseUrl}}/users?page=1&limit=10
+
+### Get User
+GET {{baseUrl}}/users/<replace_id_here>

@@ -14,6 +14,7 @@ mod error;
 mod handlers;
 mod middlewares;
 mod models;
+mod providers;
 mod repositories;
 mod routes;
 mod services;
@@ -22,7 +23,7 @@ mod utils;
 
 use crate::{
     config::AppConfig,
-    routes::{user_routes::user_routes, swagger::swagger_routes},
+    routes::user_routes::user_routes,
     state::InnerState,
 };
 
@@ -48,9 +49,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // 5. Build Router
     let app = Router::new()
         .nest("/api/v1/users", user_routes(state.clone()))
-        .nest("/docs", swagger_routes())
         .route("/health", get(|| async { "OK" }))
-        .layer(TraceLayer::new_for_http());
+        .route("/ws", get(handlers::ws::ws_handler))
+        .layer(TraceLayer::new_for_http())
+        .with_state(state);
 
     // 6. Serve
     let addr = SocketAddr::from(([0, 0, 0, 0], config.port));

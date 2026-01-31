@@ -10,6 +10,12 @@ A high-performance, maintainable backend template using Rust, Axum, and MongoDB.
 - **Validation**: Input validation using `validator` crate.
 - **Configuration**: Type-safe config loading from Environment/File.
 - **Error Handling**: Centralized `AppError` enum compatible with `IntoResponse`.
+- **API Documentation**: Built-in Swagger (Scalar) UI.
+
+## API Documentation
+
+- **Interactive UI**: `http://localhost:8080/docs`
+- **Swagger Spec**: `docs/swagger.yaml`
 
 ## Getting Started
 
