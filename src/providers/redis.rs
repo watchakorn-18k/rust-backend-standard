@@ -13,6 +13,7 @@ impl RedisProvider {
         Ok(Self { conn })
     }
 
+    #[allow(dead_code)]
     pub async fn set(&self, key: &str, value: &str) -> Result<(), redis::RedisError> {
         let mut conn = self.conn.clone();
         conn.set::<&str, &str, ()>(key, value).await?;

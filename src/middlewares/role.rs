@@ -5,6 +5,7 @@ use axum::{
     response::Response,
 };
 
+#[allow(dead_code)]
 pub async fn admin_guard(
     request: Request,
     next: Next,

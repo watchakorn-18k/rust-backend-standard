@@ -4,6 +4,7 @@ use figment::{
 };
 use serde::Deserialize;
 
+#[allow(dead_code)]
 #[derive(Debug, Deserialize, Clone)]
 pub struct AppConfig {
     pub mongodb_uri: String,

@@ -14,6 +14,7 @@ pub enum AppError {
     ValidationError(String),
     #[error("Authentication Failed")]
     AuthError,
+    #[allow(dead_code)]
     #[error("Permission Denied")]
     PermissionDenied,
     #[error("Database Error: {0}")]

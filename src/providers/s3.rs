@@ -1,6 +1,8 @@
+#[allow(dead_code)]
 #[derive(Clone)]
 pub struct S3Provider;
 
+#[allow(dead_code)]
 impl S3Provider {
     pub fn new() -> Self {
         Self

@@ -1,6 +1,8 @@
+#[allow(dead_code)]
 #[derive(Clone)]
 pub struct EmailProvider;
 
+#[allow(dead_code)]
 impl EmailProvider {
     pub fn new() -> Self {
         Self

@@ -29,13 +29,15 @@ use crate::{
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // 1. Initialize tracing
+    // 1. Load environment variables
+    dotenv().ok();
+
+    // 2. Initialize tracing
     tracing_subscriber::fmt()
         .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
         .init();
 
-    // 2. Load configuration
-    dotenv().ok();
+    // 3. Load configuration
     let config = AppConfig::new()?;
 
     // 3. Connect to Database
@@ -45,7 +47,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Connect to Redis
     let redis_url = if let Some(ref pass) = config.redis_password {
-        format!("redis://:{}@{}:{}/{}", pass, config.redis_host, config.redis_port, config.redis_db)
+        if pass.is_empty() {
+            format!("redis://{}:{}/{}", config.redis_host, config.redis_port, config.redis_db)
+        } else {
+            format!("redis://:{}@{}:{}/{}", pass, config.redis_host, config.redis_port, config.redis_db)
+        }
     } else {
         format!("redis://{}:{}/{}", config.redis_host, config.redis_port, config.redis_db)
     };
@@ -64,6 +70,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // 6. Serve
     let addr = SocketAddr::from(([0, 0, 0, 0], config.port));
+    println!("\x1b[1;32m🚀 Server is running on http://{}\x1b[0m", addr);
     tracing::info!("Listening on {}", addr);
     
     let listener = TcpListener::bind(addr).await?;
