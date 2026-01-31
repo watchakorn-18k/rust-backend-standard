@@ -28,3 +28,8 @@ pub async fn swagger_yaml() -> impl IntoResponse {
         yaml,
     )
 }
+
+pub async fn schema_html() -> impl IntoResponse {
+    let html = std::fs::read_to_string("docs/database-schema.html").unwrap_or_default();
+    Html(html)
+}

@@ -5,13 +5,10 @@ use axum::{
 use crate::{
     dtos::user::{CreateUser, UserResponse},
     error::AppError,
-    models::user::User,
     state::AppState,
 };
-use bcrypt::{hash, verify, DEFAULT_COST};
 use chrono::{Utc, Duration};
 use jsonwebtoken::{encode, Header, EncodingKey};
-use mongodb::bson::doc;
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
@@ -35,80 +32,49 @@ struct Claims {
     exp: usize,
 }
 
-pub async fn register(
-    State(state): State<AppState>,
-    Json(payload): Json<CreateUser>,
-) -> Result<Json<UserResponse>, AppError> {
-    payload.validate().map_err(|e| AppError::ValidationError(e.to_string()))?;
+pub struct AuthHandler;
 
-    // Check if user exists
-    let existing_user = state.db.collection::<User>("users")
-        .find_one(doc! { "email": &payload.email }, None)
-        .await?;
+impl AuthHandler {
 
-    if existing_user.is_some() {
-        return Err(AppError::UserAlreadyExists);
+    pub async fn register(
+        State(state): State<AppState>,
+        Json(payload): Json<CreateUser>,
+    ) -> Result<Json<UserResponse>, AppError> {
+        payload.validate().map_err(|e| AppError::ValidationError(e.to_string()))?;
+
+        let user = state.user_service.create_user(payload).await?;
+        Ok(Json(user))
     }
 
-    let hashed_password = hash(payload.password, DEFAULT_COST)
-        .map_err(|_| AppError::AuthError)?;
+    pub async fn login(
+        State(state): State<AppState>,
+        Json(payload): Json<LoginRequest>,
+    ) -> Result<Json<AuthResponse>, AppError> {
+        payload.validate().map_err(|e| AppError::ValidationError(e.to_string()))?;
 
-    let user_id = uuid::Uuid::new_v4().to_string();
+        let user = state.user_service.authenticate(&payload.email, &payload.password).await?;
 
-    let new_user = User {
-        id: Some(user_id),
-        username: payload.username,
-        email: payload.email,
-        password_hash: hashed_password,
-        role: "user".to_string(),
-        created_at: Utc::now(),
-        updated_at: Utc::now(),
-    };
+        // Generate JWT
+        let exp = Utc::now()
+            .checked_add_signed(Duration::hours(24))
+            .expect("valid timestamp")
+            .timestamp() as usize;
 
-    state.db.collection::<User>("users")
-        .insert_one(new_user.clone(), None)
-        .await?;
+        let claims = Claims {
+            sub: user.id.clone().unwrap(),
+            role: user.role.clone(),
+            exp,
+        };
 
-    let user_response: UserResponse = new_user.into();
+        let token = encode(
+            &Header::default(),
+            &claims,
+            &EncodingKey::from_secret(state.config.jwt_secret.as_ref()),
+        ).map_err(|_| AppError::AuthError)?;
 
-    Ok(Json(user_response))
-}
-
-pub async fn login(
-    State(state): State<AppState>,
-    Json(payload): Json<LoginRequest>,
-) -> Result<Json<AuthResponse>, AppError> {
-    payload.validate().map_err(|e| AppError::ValidationError(e.to_string()))?;
-
-    let user = state.db.collection::<User>("users")
-        .find_one(doc! { "email": &payload.email }, None)
-        .await?
-        .ok_or(AppError::InvalidCredentials)?;
-
-    if !verify(payload.password, &user.password_hash).map_err(|_| AppError::InvalidCredentials)? {
-        return Err(AppError::InvalidCredentials);
+        Ok(Json(AuthResponse {
+            token,
+            user: user.into(),
+        }))
     }
-
-    // Generate JWT
-    let exp = Utc::now()
-        .checked_add_signed(Duration::hours(24))
-        .expect("valid timestamp")
-        .timestamp() as usize;
-
-    let claims = Claims {
-        sub: user.id.clone().unwrap(),
-        role: user.role.clone(),
-        exp,
-    };
-
-    let token = encode(
-        &Header::default(),
-        &claims,
-        &EncodingKey::from_secret(state.config.jwt_secret.as_ref()),
-    ).map_err(|_| AppError::AuthError)?;
-
-    Ok(Json(AuthResponse {
-        token,
-        user: user.into(),
-    }))
 }

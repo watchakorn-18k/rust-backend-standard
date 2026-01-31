@@ -1,89 +1,73 @@
-# Rust Backend Standard Template
+# Rust Backend Standard Template 🦀
 
-A production-ready Rust backend template using Axum, MongoDB, and Redis.
+โครงสร้างโปรเจกต์มาตรฐานสำหรับ Backend ด้วยภาษา Rust (Axum) ที่ออกแบบมาเพื่อรองรับการขยายตัว (Scalability) และประหยัดทรัพยากร (RAM) สูงสุด เหมาะสำหรับระบบที่ต้องการความเร็วและความเสถียร
 
-## Features
+---
 
-- **Web Framework**: [Axum](https://github.com/tokio-rs/axum)
-- **Runtime**: [Tokio](https://tokio.rs/)
-- **Database**: [MongoDB](https://www.mongodb.com/)
-- **Cache/Store**: [Redis](https://redis.io/) (with Multiplexed Connection)
-- **Config Management**: [Figment](https://github.com/SergioBenitez/Figment) (Environment & Toml)
-- **Logging**: [Tracing](https://github.com/tokio-rs/tracing)
-- **Documentation**: [Swagger UI/Scalar](https://github.com/scalar/scalar) (available via `/docs`)
-- **Containerization**: Podman/Docker Compose support
+## 🏛 Project Structure (โครงสร้างโปรเจกต์)
 
-## Project Structure
+เพื่อให้การทำงานเป็นทีมมีประสิทธิภาพ เราได้แบ่ง Layer ตามหน้าที่ดังนี้:
 
 ```text
-.
-├── src/
-│   ├── handlers/      # Request handlers (Controllers)
-│   ├── routes/        # Route definitions
-│   ├── middlewares/   # Custom middlewares (Auth, Guards)
-│   ├── models/        # Database models (BSON)
-│   ├── dtos/          # Data Transfer Objects
-│   ├── providers/     # External service clients (Redis, S3, Email)
-│   ├── repositories/  # Database access layer
-│   ├── services/      # Business logic
-│   ├── config.rs      # Configuration loading
-│   ├── state.rs       # Application state
-│   ├── main.rs        # Entry point
-│   └── error.rs       # Global error handling
-├── docs/              # API documentation (Swagger/YAML)
-├── tests/             # Integration tests
-├── .env               # Local environment variables
-└── docker-compose.yml # Infrastructure (Mongo, Redis)
+src/
+├── main.rs          # [Entry Point] App entry: Global middleware, config loading, and root route setup
+├── config.rs        # [Config] Environment variable management (.env) via AppConfig
+├── state.rs         # [Global State] Shared resources like DB connections and Services (Thread-safe via Arc)
+├── db/              # [Database Providers] Connections for MongoDB, Redis, etc.
+├── routes/          # [Routing Hub] Unified endpoint registration grouped by version and module
+├── handlers/        # [Controllers] Handles requests, validates data, and sends responses to clients
+├── services/        # [Business Logic] Core logic: complex calculations and cross-repository coordination
+├── repositories/    # [Data Access] Direct database interaction layer (CRUD operations)
+├── models/          # [Data Models] Database schema definitions (BSON/Document mapping)
+├── dtos/            # [Data Transfer Objects] Request/Response data structures for API boundary
+├── middlewares/     # [Interceptors] Request/Response filters: Logger, Auth, CORS, Recover
+├── error.rs         # [Error Handling] Centralized error management with consistent JSON output
+└── utils/           # [Shared Helpers] Utility tools: Time (Bangkok), Pagination, response formatting
 ```
 
-## Getting Started
+---
 
-### 1. Prerequisites
-- [Rust](https://www.rust-lang.org/tools/install) (1.75+)
-- [Podman](https://podman.io/) or [Docker](https://www.docker.com/)
+## 🚀 Data Flow (ลำดับการทำงาน)
 
-### 2. Setup Infrastructure
-Start MongoDB and Redis:
-```bash
-podman-compose up -d
-```
+1. **Request** เข้ามาที่ `main.rs` ผ่าน Middleware (Logger/Auth)
+2. **Router** (`routes/`) ส่งต่อให้ **Handler** (`handlers/`)
+3. **Handler** ตรวจสอบข้อมูลเบื้องต้น (Validation) แล้วเรียก **Service** (`services/`)
+4. **Service** จัดการตรรกะทางธุรกิจ แล้วเรียก **Repository** (`repositories/`) เพื่อบันทึก/ดึงข้อมูลจาก DB
+5. **Response** ถูกส่งกลับผ่าน Handler ออกไปในรูปแบบ JSON มาตรฐาน
 
-### 3. Environment Configuration
-Copy the example environment file:
-```bash
-cp .env.example .env
-```
-Key configurations:
-- `MONGODB_URI`: MongoDB connection string
-- `REDIS_HOST`: Redis host address
-- `JWT_SECRET`: Secret key for token signing
+---
 
-### 4. Run the Application
-```bash
-cargo run
-```
-The server will start at `http://localhost:3000`.
+## 🧠 Memory Optimization Best Practices (การประหยัด RAM)
 
-## API Testing
+Rust ประหยัด RAM อยู่แล้ว แต่เราสามารถทำให้ประหยัดขึ้นได้อีกด้วยเทคนิคดังนี้:
 
-### Health Check
-Verify connections to Database and Redis:
-```bash
-curl http://localhost:3000/health
-```
+### 1. ใช้ References (`&`) มากกว่าการ `Clone()`
+การเรียก `.clone()` บนข้อมูลขนาดใหญ่ (เช่น String ยาวๆ หรือ Vec) จะเป็นการจอง RAM ใหม่
+- **Do:** ส่งผ่าน Reference เช่น `&str` หรือ `&[u8]` ถ้าฟังก์ชันนั้นแค่ "อ่าน" ข้อมูล
+- **Don't:** อย่า `clone()` แค่เพื่อให้ Compiler หายด่า (แก้ปัญหาที่ต้นเหตุ)
 
-### WebSocket Test
-A simple WebSocket handler is available at `/ws`. You can test it using the provided `ws_test.html` or any WebSocket client.
+### 2. ใช้ `Arc<T>` สำหรับการแชร์ State
+ในแอปนี้ เราใช้ `Arc<InnerState>` (Atomic Reference Counting)
+- **ประโยชน์:** เมื่อเราย้ายข้อมูลข้ามเธรด (Thread) หรือส่งไปให้ Handler, Rust จะไม่ก๊อปปี้ข้อมูลทั้งหมด แต่จะสร้าง "ตัวนับจำนวนอ้างอิง" เล็กๆ ขึ้นมาแทน ทำให้มีข้อมูลจริงแค่ชุดเดียวใน RAM
 
-## Development
+### 3. การจองหน่วยความจำเท่าที่จำเป็น
+- **Projection:** เมื่อดึงข้อมูลจาก MongoDB ให้ดึงมาเฉพาะ Field ที่ต้องใช้ (อย่ายกมาทั้งก้อนถ้าต้องการแค่ชื่อ)
+- **Lazy Allocation:** อย่าจองช่องว่างใน `Vec::with_capacity(1000)` ถ้าคุณรู้ว่าจะใช้จริงๆ แค่ 10 ช่อง
 
-### Hot Reload
-Use `cargo-watch` for automatic reloading during development:
-```bash
-cargo watch -x run
-```
+### 4. ใช้ Enums และ Structs ที่กะทัดรัด (Memory Layout)
+- Rust จะพยายามเรียงข้อมูลใน RAM ให้ชิดกันที่สุด การเลือกใช้ `u16` แทน `u64` สำหรับตัวเลขเล็กๆ ช่วยให้ประหยัดพื้นที่ใน Cache ของ CPU และ RAM ได้มหาศาล
 
-### Linting
-```bash
-cargo clippy
-```
+### 5. การใช้ `Box` ในกรณีที่เหมาะสม
+- หากมี Struct ขนาดใหญ่มากๆ ที่ใช้งานข้ามไปมา การเก็บไว้ใน Heap ผ่าน `Box<T>` จะช่วยให้การย้ายข้อมูล (Move) มีประสิทธิภาพขึ้น เพราะจะย้ายเพียง "ที่อยู่" (Pointer) ไม่ใช่ข้อมูลขนาดใหญ่นั้นทั้งชุด
+
+---
+
+## 🛠 Getting Started
+
+1. **Infrastructure**: รัน `docker-compose up -d` เพื่อเริ่ม Mongo และ Redis
+2. **Environment**: `cp .env.example .env` และตั้งค่า `APP_MODE=development`
+3. **Run**: `cargo run`
+4. **Documentation**: เข้าไปที่ `http://localhost:1432/docs` เพื่อดู API Spec (Scalar UI)
+
+---
+*คำแนะนำ:  การศึกษาเรื่อง **Ownership** และ **Borrowing** ใน Rust คือกุญแจสำคัญที่จะทำให้คุณเขียนโค้ดที่ทั้งเร็วและไม่มี Memory Leak*

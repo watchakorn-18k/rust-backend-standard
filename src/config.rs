@@ -21,10 +21,16 @@ pub struct AppConfig {
     pub firebase_credentials_file: String,
     #[serde(default = "default_port")]
     pub port: u16,
+    #[serde(default = "default_mode")]
+    pub app_mode: String,
 }
 
 fn default_port() -> u16 {
     3000
+}
+
+fn default_mode() -> String {
+    "production".to_string()
 }
 
 impl AppConfig {

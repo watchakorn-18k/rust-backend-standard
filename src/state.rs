@@ -1,18 +1,24 @@
 use crate::config::AppConfig;
-use crate::providers::redis::RedisProvider;
-use mongodb::Database;
+use crate::db::{redis::RedisProvider, mongo::MongoProvider};
+use crate::services::user_service::UserService;
 use std::sync::Arc;
 
 pub struct InnerState {
-    pub db: Database,
+    pub db: MongoProvider,
     pub config: AppConfig,
     pub redis: RedisProvider,
+    pub user_service: UserService,
 }
 
 pub type AppState = Arc<InnerState>;
 
 impl InnerState {
-    pub fn new(db: Database, config: AppConfig, redis: RedisProvider) -> Self {
-        Self { db, config, redis }
+    pub fn new(
+        db: MongoProvider,
+        config: AppConfig,
+        redis: RedisProvider,
+        user_service: UserService,
+    ) -> Self {
+        Self { db, config, redis, user_service }
     }
 }

@@ -1,8 +1,6 @@
 use crate::{
     dtos::user::{CreateUser, UpdateUser},
     error::AppError,
-    repositories::user_repository::UserRepository,
-    services::user_service::UserService,
     state::AppState,
     utils::response::{json_created, json_ok,},
     utils::pagination::PaginationParams,
@@ -14,51 +12,44 @@ use axum::{
 };
 use validator::Validate;
 
-fn get_service(state: &AppState) -> UserService {
-    UserService::new(UserRepository::new(&state.db))
-}
+pub struct UserHandler;
 
-pub async fn create_user(
-    State(state): State<AppState>,
-    Json(payload): Json<CreateUser>,
-) -> Result<impl IntoResponse, AppError> {
-    payload.validate().map_err(|e| AppError::ValidationError(e.to_string()))?;
-    
-    let service = get_service(&state);
-    let user = service.create_user(payload).await?;
-    
-    Ok(json_created(user))
-}
+impl UserHandler {
 
-pub async fn get_user(
-    State(state): State<AppState>,
-    Path(id): Path<String>,
-) -> Result<impl IntoResponse, AppError> {
-    let service = get_service(&state);
-    let user = service.get_user(&id).await?;
-    
-    Ok(json_ok(user))
-}
+    pub async fn create_user(
+        State(state): State<AppState>,
+        Json(payload): Json<CreateUser>,
+    ) -> Result<impl IntoResponse, AppError> {
+        payload.validate().map_err(|e| AppError::ValidationError(e.to_string()))?;
+        
+        let user = state.user_service.create_user(payload).await?;
+        Ok(json_created(user))
+    }
 
-pub async fn list_users(
-    State(state): State<AppState>,
-    Query(params): Query<PaginationParams>,
-) -> Result<impl IntoResponse, AppError> {
-    let service = get_service(&state);
-    let result = service.list_users(params.page, params.limit).await?;
-    
-    Ok(json_ok(result))
-}
+    pub async fn get_user(
+        State(state): State<AppState>,
+        Path(id): Path<String>,
+    ) -> Result<impl IntoResponse, AppError> {
+        let user = state.user_service.get_user(&id).await?;
+        Ok(json_ok(user))
+    }
 
-pub async fn update_user(
-    State(state): State<AppState>,
-    Path(id): Path<String>,
-    Json(payload): Json<UpdateUser>,
-) -> Result<impl IntoResponse, AppError> {
-    payload.validate().map_err(|e| AppError::ValidationError(e.to_string()))?;
+    pub async fn list_users(
+        State(state): State<AppState>,
+        Query(params): Query<PaginationParams>,
+    ) -> Result<impl IntoResponse, AppError> {
+        let result = state.user_service.list_users(params.page, params.limit).await?;
+        Ok(json_ok(result))
+    }
 
-    let service = get_service(&state);
-    service.update_user(&id, payload).await?;
-    
-    Ok(json_ok("User updated successfully"))
+    pub async fn update_user(
+        State(state): State<AppState>,
+        Path(id): Path<String>,
+        Json(payload): Json<UpdateUser>,
+    ) -> Result<impl IntoResponse, AppError> {
+        payload.validate().map_err(|e| AppError::ValidationError(e.to_string()))?;
+
+        state.user_service.update_user(&id, payload).await?;
+        Ok(json_ok("User updated successfully"))
+    }
 }

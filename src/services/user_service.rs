@@ -7,7 +7,7 @@ use crate::{
 };
 use chrono::Utc;
 use mongodb::bson::doc;
-use bcrypt::{hash, DEFAULT_COST};
+use bcrypt::{hash, verify, DEFAULT_COST};
 
 #[derive(Clone)]
 pub struct UserService {
@@ -81,5 +81,16 @@ impl UserService {
         }
 
         self.repo.update(id, update_doc).await.map_err(Into::into)
+    }
+
+    pub async fn authenticate(&self, email: &str, password: &str) -> Result<User, AppError> {
+        let user = self.repo.find_by_email(email).await?
+            .ok_or(AppError::InvalidCredentials)?;
+
+        if !verify(password, &user.password_hash).map_err(|_| AppError::InvalidCredentials)? {
+            return Err(AppError::InvalidCredentials);
+        }
+
+        Ok(user)
     }
 }

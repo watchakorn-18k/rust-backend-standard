@@ -7,7 +7,19 @@ pub struct RedisProvider {
 }
 
 impl RedisProvider {
-    pub async fn new(redis_url: &str) -> Result<Self, redis::RedisError> {
+    pub async fn new(
+        host: &str,
+        port: u16,
+        password: Option<String>,
+        db: i64,
+    ) -> Result<Self, redis::RedisError> {
+        let redis_url = match password {
+            Some(ref pass) if !pass.is_empty() => {
+                format!("redis://:{}@{}:{}/{}", pass, host, port, db)
+            }
+            _ => format!("redis://{}:{}/{}", host, port, db),
+        };
+        
         let client = redis::Client::open(redis_url)?;
         let conn = client.get_multiplexed_tokio_connection().await?;
         Ok(Self { conn })

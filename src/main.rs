@@ -1,14 +1,18 @@
 use axum::{
     routing::get,
-    Router,
+    http::{header::{CONTENT_TYPE, AUTHORIZATION}, Method, HeaderValue}
 };
 use dotenvy::dotenv;
 use std::net::SocketAddr;
 use std::sync::Arc;
 use tokio::net::TcpListener;
-use tower_http::trace::TraceLayer;
-
+use tower_http::{
+    catch_panic::CatchPanicLayer,
+    cors::CorsLayer,
+    trace::TraceLayer,
+};
 mod config;
+mod db;
 mod dtos;
 mod error;
 mod handlers;
@@ -23,7 +27,6 @@ mod utils;
 
 use crate::{
     config::AppConfig,
-    routes::user_routes::user_routes,
     state::InnerState,
 };
 
@@ -32,44 +35,67 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // 1. Load environment variables
     dotenv().ok();
 
-    // 2. Initialize tracing
+    // 2. Set Timezone
+    utils::time::set_global_timezone();
+
+    // 3. Initialize tracing
     tracing_subscriber::fmt()
         .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
+        .with_timer(utils::time::BangkokTimer)
         .init();
 
-    // 3. Load configuration
+    // Load configuration
     let config = AppConfig::new()?;
 
-    // 3. Connect to Database
-    let client_options = mongodb::options::ClientOptions::parse(&config.mongodb_uri).await?;
-    let client = mongodb::Client::with_options(client_options)?;
-    let db = client.database(&config.mongodb_name);
+    // Connect to Database
+    let db = db::mongo::MongoProvider::new(&config.mongodb_uri, &config.mongodb_name).await?;
 
     // Connect to Redis
-    let redis_url = if let Some(ref pass) = config.redis_password {
-        if pass.is_empty() {
-            format!("redis://{}:{}/{}", config.redis_host, config.redis_port, config.redis_db)
-        } else {
-            format!("redis://:{}@{}:{}/{}", pass, config.redis_host, config.redis_port, config.redis_db)
-        }
-    } else {
-        format!("redis://{}:{}/{}", config.redis_host, config.redis_port, config.redis_db)
-    };
-    let redis = providers::redis::RedisProvider::new(&redis_url).await?;
+    let redis = db::redis::RedisProvider::new(
+        &config.redis_host,
+        config.redis_port,
+        config.redis_password.clone(),
+        config.redis_db,
+    ).await?;
 
-    // 4. Create AppState
-    let state = Arc::new(InnerState::new(db, config.clone(), redis));
+    // Initialize Repositories
+    let user_repo = repositories::user_repository::UserRepository::new(&db);
 
-    // 5. Build Router
-    let app = Router::new()
-        .route("/", get(|| async { axum::Json(serde_json::json!({ "message": "Welcome to fdlp Rust Backend Standard API", "version": "0.1.0", "docs": "/docs" })) }))
-        .nest("/api/v1/auth", routes::auth_routes::auth_routes(state.clone()))
-        .nest("/api/v1/users", user_routes(state.clone()))
-        .route("/health", get(handlers::health::health_check))
-        .route("/ws", get(handlers::ws::ws_handler))
-        .route("/docs", get(handlers::docs::scalar_ui))
-        .route("/swagger.yaml", get(handlers::docs::swagger_yaml))
+    // Initialize Services
+    let user_service = services::user_service::UserService::new(user_repo);
+
+    // Create AppState
+    let state = Arc::new(InnerState::new(db, config.clone(), redis, user_service));
+
+    // Build Router
+    let cors = CorsLayer::new()
+        .allow_origin("http://localhost:5173".parse::<HeaderValue>().unwrap())
+        .allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE])
+        .allow_headers([CONTENT_TYPE, AUTHORIZATION]);
+
+    let mut app = routes::init_routes(state.clone())
+        .route("/", get(|| async { 
+            axum::Json(serde_json::json!({ 
+                "message": "Welcome to fdlp Rust Backend Standard API", 
+                "version": "0.1.0", 
+                "docs": "/docs" 
+            })) 
+        }))
+        .route("/health", get(handlers::health::health_check));
+
+    // 8. Documentation routes (Only in development)
+    if state.config.app_mode == "development" {
+        app = app
+            .route("/docs", get(handlers::docs::scalar_ui))
+            .route("/swagger.yaml", get(handlers::docs::swagger_yaml))
+            .route("/schema", get(handlers::docs::schema_html));
+    }
+
+    let app = app
+        .layer(axum::middleware::from_fn(middlewares::logger::logger_middleware))
         .layer(TraceLayer::new_for_http())
+        .layer(cors)
+        .layer(CatchPanicLayer::new())
         .with_state(state);
 
     // 6. Serve
