@@ -4,9 +4,10 @@ use axum::{
     Router,
 };
 
-pub fn user_routes(state: AppState) -> Router {
+pub fn user_routes(state: AppState) -> Router<AppState> {
     Router::new()
         .route("/", post(user_handler::create_user).get(user_handler::list_users))
         .route("/:id", get(user_handler::get_user).put(user_handler::update_user))
+        .layer(axum::middleware::from_fn_with_state(state.clone(), crate::middlewares::auth::auth_middleware))
         .with_state(state)
 }

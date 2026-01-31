@@ -23,7 +23,6 @@ impl UserService {
             return Err(AppError::ValidationError("Email already exists".into()));
         }
 
-        // TODO: Hash password here
         let password_hash = format!("hashed_{}", input.password);
 
         let user = User {
@@ -69,7 +68,6 @@ impl UserService {
     }
     
     pub async fn update_user(&self, id: ObjectId, input: UpdateUser) -> Result<(), AppError> {
-        // Build dynamic update document
         let mut update_doc = doc! { "updated_at": Utc::now() };
         
         if let Some(username) = input.username {
@@ -77,8 +75,6 @@ impl UserService {
         }
         
         if let Some(email) = input.email {
-            // Check uniqueness if email changes
-            // Real implementation should be more careful about race conditions or use unique index in DB
              if self.repo.find_by_email(&email).await?.is_some() {
                  return Err(AppError::ValidationError("Email already exists".into()));
              }

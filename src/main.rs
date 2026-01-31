@@ -14,6 +14,7 @@ mod error;
 mod handlers;
 mod middlewares;
 mod models;
+mod providers;
 mod repositories;
 mod routes;
 mod services;
@@ -22,7 +23,7 @@ mod utils;
 
 use crate::{
     config::AppConfig,
-    routes::{user_routes::user_routes, swagger::swagger_routes},
+    routes::user_routes::user_routes,
     state::InnerState,
 };
 
@@ -38,19 +39,28 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let config = AppConfig::new()?;
 
     // 3. Connect to Database
-    let client_options = mongodb::options::ClientOptions::parse(&config.database_url).await?;
+    let client_options = mongodb::options::ClientOptions::parse(&config.mongodb_uri).await?;
     let client = mongodb::Client::with_options(client_options)?;
-    let db = client.database(&config.database_name);
+    let db = client.database(&config.mongodb_name);
+
+    // Connect to Redis
+    let redis_url = if let Some(ref pass) = config.redis_password {
+        format!("redis://:{}@{}:{}/{}", pass, config.redis_host, config.redis_port, config.redis_db)
+    } else {
+        format!("redis://{}:{}/{}", config.redis_host, config.redis_port, config.redis_db)
+    };
+    let redis = providers::redis::RedisProvider::new(&redis_url).await?;
 
     // 4. Create AppState
-    let state = Arc::new(InnerState::new(db));
+    let state = Arc::new(InnerState::new(db, config.clone(), redis));
 
     // 5. Build Router
     let app = Router::new()
         .nest("/api/v1/users", user_routes(state.clone()))
-        .nest("/docs", swagger_routes())
-        .route("/health", get(|| async { "OK" }))
-        .layer(TraceLayer::new_for_http());
+        .route("/health", get(handlers::health::health_check))
+        .route("/ws", get(handlers::ws::ws_handler))
+        .layer(TraceLayer::new_for_http())
+        .with_state(state);
 
     // 6. Serve
     let addr = SocketAddr::from(([0, 0, 0, 0], config.port));
