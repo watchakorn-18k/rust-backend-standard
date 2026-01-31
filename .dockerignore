@@ -1,0 +1,13 @@
+target/
+.git/
+.env
+.claude/
+docs/
+api-collection/
+coverage*.txt
+k6_loadtest/
+credentials/
+Dockerfile*
+docker-compose.yml
+LICENSE
+README.md
