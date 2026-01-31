@@ -39,4 +39,4 @@ credentials/
 fldp-rust-backend-template/target/
 fldp-rust-backend-template/Cargo.lock
 fldp-rust-backend-template/credentials/
-
+coverage*.txt
