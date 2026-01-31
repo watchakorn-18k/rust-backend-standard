@@ -6,18 +6,31 @@ use serde::Deserialize;
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct AppConfig {
-    pub database_url: String,
-    pub database_name: String,
-    pub port: u16,
+    pub mongodb_uri: String,
+    pub mongodb_name: String,
+    pub redis_host: String,
+    pub redis_port: u16,
+    pub redis_password: Option<String>,
+    pub redis_db: i64,
     pub jwt_secret: String,
+    pub aws_region: String,
+    pub aws_access_key_id: String,
+    pub aws_secret_access_key: String,
+    pub aws_bucket_name: String,
+    pub firebase_credentials_file: String,
+    #[serde(default = "default_port")]
+    pub port: u16,
+}
+
+fn default_port() -> u16 {
+    3000
 }
 
 impl AppConfig {
     pub fn new() -> Result<Self, figment::Error> {
         Figment::new()
-            .merge(Env::prefixed("APP_"))
             .merge(Toml::file("App.toml"))
-            .join(Env::raw()) // Load raw env vars as well if needed
+            .merge(Env::raw())
             .extract()
     }
 }

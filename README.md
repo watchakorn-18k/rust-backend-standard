@@ -1,52 +1,89 @@
-# Rust Axum MongoDB Template (2026)
+# Rust Backend Standard Template
 
-A high-performance, maintainable backend template using Rust, Axum, and MongoDB.
+A production-ready Rust backend template using Axum, MongoDB, and Redis.
 
 ## Features
 
-- **Axum**: Modern, ergonomic, and fast web framework.
-- **MongoDB**: Async driver with generic repository pattern.
-- **Architecture**: Clean separation of concerns (Handler -> Service -> Repository).
-- **Validation**: Input validation using `validator` crate.
-- **Configuration**: Type-safe config loading from Environment/File.
-- **Error Handling**: Centralized `AppError` enum compatible with `IntoResponse`.
-- **API Documentation**: Built-in Swagger (Scalar) UI.
-
-## API Documentation
-
-- **Interactive UI**: `http://localhost:8080/docs`
-- **Swagger Spec**: `docs/swagger.yaml`
-
-## Getting Started
-
-1.  **Start Database**:
-    ```bash
-    docker-compose up -d
-    ```
-
-2.  **Environment**:
-    ```bash
-    cp .env.example .env
-    ```
-
-3.  **Run**:
-    ```bash
-    cargo run
-    ```
+- **Web Framework**: [Axum](https://github.com/tokio-rs/axum)
+- **Runtime**: [Tokio](https://tokio.rs/)
+- **Database**: [MongoDB](https://www.mongodb.com/)
+- **Cache/Store**: [Redis](https://redis.io/) (with Multiplexed Connection)
+- **Config Management**: [Figment](https://github.com/SergioBenitez/Figment) (Environment & Toml)
+- **Logging**: [Tracing](https://github.com/tokio-rs/tracing)
+- **Documentation**: [Swagger UI/Scalar](https://github.com/scalar/scalar) (available via `/docs`)
+- **Containerization**: Podman/Docker Compose support
 
 ## Project Structure
 
-- `src/handlers`: HTTP Controllers (Axum).
-- `src/services`: Business Logic.
-- `src/repositories`: Data Access Layer.
-- `src/models`: Database Structs.
-- `src/dtos`: Data Transfer Objects (Input/Output structs).
-- `src/config.rs`: Configuration loader.
-- `src/error.rs`: Global error handling.
+```text
+.
+├── src/
+│   ├── handlers/      # Request handlers (Controllers)
+│   ├── routes/        # Route definitions
+│   ├── middlewares/   # Custom middlewares (Auth, Guards)
+│   ├── models/        # Database models (BSON)
+│   ├── dtos/          # Data Transfer Objects
+│   ├── providers/     # External service clients (Redis, S3, Email)
+│   ├── repositories/  # Database access layer
+│   ├── services/      # Business logic
+│   ├── config.rs      # Configuration loading
+│   ├── state.rs       # Application state
+│   ├── main.rs        # Entry point
+│   └── error.rs       # Global error handling
+├── docs/              # API documentation (Swagger/YAML)
+├── tests/             # Integration tests
+├── .env               # Local environment variables
+└── docker-compose.yml # Infrastructure (Mongo, Redis)
+```
 
-## API Endpoints
+## Getting Started
 
-- `POST /api/v1/users` - Create user
-- `GET /api/v1/users` - List users (pagination supported)
-- `GET /api/v1/users/:id` - Get user by ID
-- `PUT /api/v1/users/:id` - Update user
+### 1. Prerequisites
+- [Rust](https://www.rust-lang.org/tools/install) (1.75+)
+- [Podman](https://podman.io/) or [Docker](https://www.docker.com/)
+
+### 2. Setup Infrastructure
+Start MongoDB and Redis:
+```bash
+podman-compose up -d
+```
+
+### 3. Environment Configuration
+Copy the example environment file:
+```bash
+cp .env.example .env
+```
+Key configurations:
+- `MONGODB_URI`: MongoDB connection string
+- `REDIS_HOST`: Redis host address
+- `JWT_SECRET`: Secret key for token signing
+
+### 4. Run the Application
+```bash
+cargo run
+```
+The server will start at `http://localhost:3000`.
+
+## API Testing
+
+### Health Check
+Verify connections to Database and Redis:
+```bash
+curl http://localhost:3000/health
+```
+
+### WebSocket Test
+A simple WebSocket handler is available at `/ws`. You can test it using the provided `ws_test.html` or any WebSocket client.
+
+## Development
+
+### Hot Reload
+Use `cargo-watch` for automatic reloading during development:
+```bash
+cargo watch -x run
+```
+
+### Linting
+```bash
+cargo clippy
+```

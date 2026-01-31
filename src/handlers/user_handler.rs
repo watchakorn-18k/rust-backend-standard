@@ -15,7 +15,6 @@ use axum::{
 use mongodb::bson::oid::ObjectId;
 use validator::Validate;
 
-// Helper to get service
 fn get_service(state: &AppState) -> UserService {
     UserService::new(UserRepository::new(&state.db))
 }

@@ -33,12 +33,10 @@ impl UserRepository {
     }
 
     pub async fn update(&self, id: ObjectId, update_doc: mongodb::bson::Document) -> Result<(), mongodb::error::Error> {
-         // Using update_one with $set
          self.collection.update_one(doc! { "_id": id }, doc! { "$set": update_doc }, None).await?;
          Ok(())
     }
     
-    // Example generic fetch for pagination hooks, though more complex in real world
     pub async fn find_all(&self, skip: u64, limit: i64) -> Result<Vec<User>, mongodb::error::Error> {
         let find_options = mongodb::options::FindOptions::builder()
             .skip(skip)
